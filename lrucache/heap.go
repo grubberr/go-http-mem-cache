@@ -7,7 +7,7 @@ func (h Heap) Len() int {
 }
 
 func (h Heap) Less(i int, j int) bool {
-	return h[i].frequency < h[j].frequency
+	return h[i].time.Before(h[j].time)
 }
 
 func (h Heap) Swap(i int, j int) {

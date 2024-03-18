@@ -4,12 +4,13 @@ import (
 	"container/heap"
 	"fmt"
 	"sync"
+	"time"
 )
 
 type Item struct {
-	key       string
-	value     string
-	frequency int
+	key   string
+	value string
+	time  time.Time
 }
 
 type LRUCache struct {
@@ -35,7 +36,7 @@ func (r *LRUCache) Get(key string) (string, bool) {
 	if !ok {
 		return "", ok
 	}
-	(*item).frequency += 1
+	(*item).time = time.Now()
 	return (*item).value, ok
 }
 
@@ -53,7 +54,7 @@ func (r *LRUCache) Set(key, value string) {
 		delete(r.cache, item.key)
 	}
 
-	item := &Item{key: key, value: value, frequency: 0}
+	item := &Item{key: key, value: value, time: time.Now()}
 	r.cache[key] = item
 	heap.Push(&r.queue, item)
 }
