@@ -1,62 +1,63 @@
 package lrucache
 
 import (
-	"container/heap"
+	"container/list"
 	"fmt"
 	"sync"
-	"time"
 )
 
 type Item struct {
-	key   string
-	value string
-	time  time.Time
+	key     string
+	value   string
+	element *list.Element
 }
 
 type LRUCache struct {
 	size  int
-	m     sync.RWMutex
-	cache map[string]*Item
-	queue Heap
+	m     sync.Mutex
+	cache map[string]Item
+	queue *list.List
 }
 
 func NewLRUCache(size int) *LRUCache {
 	return &LRUCache{
 		size:  size,
-		m:     sync.RWMutex{},
-		cache: make(map[string]*Item),
-		queue: Heap{},
+		m:     sync.Mutex{},
+		cache: make(map[string]Item),
+		queue: list.New(),
 	}
 }
 
 func (r *LRUCache) Get(key string) (string, bool) {
-	r.m.RLock()
-	defer r.m.RUnlock()
+	r.m.Lock()
+	defer r.m.Unlock()
 	item, ok := r.cache[key]
 	if !ok {
 		return "", ok
 	}
-	(*item).time = time.Now()
-	return (*item).value, ok
+	r.queue.MoveToFront(item.element)
+	return item.value, ok
 }
 
 func (r *LRUCache) Set(key, value string) {
-	_, ok := r.Get(key)
-	if ok {
-		return
-	}
-
 	r.m.Lock()
 	defer r.m.Unlock()
 
-	if len(r.cache) >= r.size {
-		item := heap.Pop(&r.queue).(*Item)
-		delete(r.cache, item.key)
+	item, ok := r.cache[key]
+	if ok {
+		item.value = value
+		r.queue.MoveToFront(item.element)
+		return
 	}
 
-	item := &Item{key: key, value: value, time: time.Now()}
-	r.cache[key] = item
-	heap.Push(&r.queue, item)
+	if len(r.cache) >= r.size {
+		element := r.queue.Back()
+		r.queue.Remove(element)
+		delete(r.cache, element.Value.(string))
+	}
+
+	element := r.queue.PushFront(key)
+	r.cache[key] = Item{key: key, value: value, element: element}
 }
 
 func (r *LRUCache) PrintCache() {
