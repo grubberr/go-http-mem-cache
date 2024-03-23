@@ -15,7 +15,7 @@ type Item struct {
 type LRUCache struct {
 	size  int
 	m     sync.Mutex
-	cache map[string]Item
+	cache map[string]*Item
 	queue *list.List
 }
 
@@ -23,7 +23,7 @@ func NewLRUCache(size int) *LRUCache {
 	return &LRUCache{
 		size:  size,
 		m:     sync.Mutex{},
-		cache: make(map[string]Item),
+		cache: make(map[string]*Item),
 		queue: list.New(),
 	}
 }
@@ -57,7 +57,7 @@ func (r *LRUCache) Set(key, value string) {
 	}
 
 	element := r.queue.PushFront(key)
-	r.cache[key] = Item{key: key, value: value, element: element}
+	r.cache[key] = &Item{key: key, value: value, element: element}
 }
 
 func (r *LRUCache) PrintCache() {
