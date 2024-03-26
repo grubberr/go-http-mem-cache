@@ -11,27 +11,27 @@ func TestLRUCacheGetNotFound(t *testing.T) {
 	if ok != false {
 		t.Errorf("got %v; want %v", ok, false)
 	}
-	if value != "" {
-		t.Errorf("got %s; want empty string", value)
+	if value != nil {
+		t.Errorf("got '%s'; want nil", value)
 	}
 }
 
 func TestLRUCacheGetFound(t *testing.T) {
 	cache := NewLRUCache(1)
-	cache.cache["key"] = &Item{key: "key", value: "value", element: cache.queue.PushFront("key")}
+	cache.cache["key"] = &Item{key: "key", value: []byte("value"), element: cache.queue.PushFront("key")}
 
 	value, ok := cache.Get("key")
 	if ok != true {
 		t.Errorf("got %v; want %v", ok, true)
 	}
-	if value != "value" {
+	if !slices.Equal(value, []byte("value")) {
 		t.Errorf("got %s; want 'value'", value)
 	}
 }
 
 func TestLRUCacheSetNew(t *testing.T) {
 	cache := NewLRUCache(1)
-	cache.Set("key", "value")
+	cache.Set("key", []byte("value"))
 	item, ok := cache.cache["key"]
 	if ok != true {
 		t.Errorf("got %v; want %v", ok, true)
@@ -39,7 +39,7 @@ func TestLRUCacheSetNew(t *testing.T) {
 	if item.key != "key" {
 		t.Errorf("got %s; want 'key'", item.key)
 	}
-	if item.value != "value" {
+	if !slices.Equal(item.value, []byte("value")) {
 		t.Errorf("got %s; want 'value'", item.value)
 	}
 	if queueLen := cache.queue.Len(); queueLen != 1 {
@@ -52,11 +52,11 @@ func TestLRUCacheSetNew(t *testing.T) {
 
 func TestLRUCacheSetUpdate(t *testing.T) {
 	cache := NewLRUCache(2)
-	cache.cache["key1"] = &Item{key: "key1", value: "value1", element: cache.queue.PushFront("key1")}
-	cache.cache["key2"] = &Item{key: "key2", value: "value2", element: cache.queue.PushFront("key2")}
-	cache.cache["key3"] = &Item{key: "key3", value: "value3", element: cache.queue.PushFront("key3")}
+	cache.cache["key1"] = &Item{key: "key1", value: []byte("value1"), element: cache.queue.PushFront("key1")}
+	cache.cache["key2"] = &Item{key: "key2", value: []byte("value2"), element: cache.queue.PushFront("key2")}
+	cache.cache["key3"] = &Item{key: "key3", value: []byte("value3"), element: cache.queue.PushFront("key3")}
 
-	cache.Set("key1", "value1-update")
+	cache.Set("key1", []byte("value1-update"))
 
 	if lenCache := len(cache.cache); lenCache != 3 {
 		t.Errorf("got %d; want 3", lenCache)
@@ -69,7 +69,7 @@ func TestLRUCacheSetUpdate(t *testing.T) {
 	if item.key != "key1" {
 		t.Errorf("got %s; want 'key1'", item.key)
 	}
-	if item.value != "value1-update" {
+	if !slices.Equal(item.value, []byte("value1-update")) {
 		t.Errorf("got %s; want 'value1-update'", item.value)
 	}
 
@@ -85,10 +85,10 @@ func TestLRUCacheSetUpdate(t *testing.T) {
 
 func TestLRUCacheSetReplace(t *testing.T) {
 	cache := NewLRUCache(2)
-	cache.cache["key1"] = &Item{key: "key1", value: "value1", element: cache.queue.PushFront("key1")}
-	cache.cache["key2"] = &Item{key: "key2", value: "value2", element: cache.queue.PushFront("key2")}
+	cache.cache["key1"] = &Item{key: "key1", value: []byte("value1"), element: cache.queue.PushFront("key1")}
+	cache.cache["key2"] = &Item{key: "key2", value: []byte("value2"), element: cache.queue.PushFront("key2")}
 
-	cache.Set("key3", "value3")
+	cache.Set("key3", []byte("value3"))
 
 	if lenCache := len(cache.cache); lenCache != 2 {
 		t.Errorf("got %d; want 2", lenCache)

@@ -8,7 +8,7 @@ import (
 
 type Item struct {
 	key     string
-	value   string
+	value   []byte
 	element *list.Element
 }
 
@@ -28,18 +28,18 @@ func NewLRUCache(size int) *LRUCache {
 	}
 }
 
-func (r *LRUCache) Get(key string) (string, bool) {
+func (r *LRUCache) Get(key string) ([]byte, bool) {
 	r.m.Lock()
 	defer r.m.Unlock()
 	item, ok := r.cache[key]
 	if !ok {
-		return "", ok
+		return nil, ok
 	}
 	r.queue.MoveToFront(item.element)
 	return item.value, ok
 }
 
-func (r *LRUCache) Set(key, value string) {
+func (r *LRUCache) Set(key string, value []byte) {
 	r.m.Lock()
 	defer r.m.Unlock()
 
