@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/grubberr/go-http-mem-cache/lrucache"
 	"io"
 	"net/http"
@@ -54,10 +55,17 @@ func (s *CacheService) getCacheHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+func (s *CacheService) getStatHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	res, _ := json.MarshalIndent(s.cache.GetTopKeys(5), "", " ")
+	w.Write(res)
+}
+
 func main() {
 	service := CacheService{cache: lrucache.NewLRUCache(10)}
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /cache/", service.setCacheHandler)
 	mux.HandleFunc("GET /cache/", service.getCacheHandler)
+	mux.HandleFunc("GET /stat/", service.getStatHandler)
 	http.ListenAndServe("localhost:8000", mux)
 }
